@@ -15,18 +15,25 @@ class ArrayToXml
 
     protected $numericTagNamePrefix = 'numeric_';
 
+    protected $forcedNumericTagName;
+
     public function __construct(
         array $array,
         $rootElement = '',
         $replaceSpacesByUnderScoresInKeyNames = true,
         $xmlEncoding = null,
         $xmlVersion = '1.0',
-        $domProperties = []
+        $domProperties = [],
+        $forcedNumericTagName = null
     ) {
         $this->document = new DOMDocument($xmlVersion, $xmlEncoding);
 
         if (! empty($domProperties)) {
             $this->setDomProperties($domProperties);
+        }
+
+        if (!empty($forcedNumericTagName)) {
+            $this->forcedNumericTagName = $forcedNumericTagName;
         }
 
         $this->replaceSpacesByUnderScoresInKeyNames = $replaceSpacesByUnderScoresInKeyNames;
@@ -53,7 +60,8 @@ class ArrayToXml
         bool $replaceSpacesByUnderScoresInKeyNames = true,
         string $xmlEncoding = null,
         string $xmlVersion = '1.0',
-        array $domProperties = []
+        array $domProperties = [],
+        $forcedNumericTagName = null
     ) {
         $converter = new static(
             $array,
@@ -61,7 +69,8 @@ class ArrayToXml
             $replaceSpacesByUnderScoresInKeyNames,
             $xmlEncoding,
             $xmlVersion,
-            $domProperties
+            $domProperties,
+            $forcedNumericTagName
         );
 
         return $converter->toXml();
@@ -139,7 +148,11 @@ class ArrayToXml
     protected function addNumericNode(DOMElement $element, $value)
     {
         foreach ($value as $key => $item) {
-            $this->convertElement($element, [$this->numericTagNamePrefix.$key => $item]);
+            if (!empty($this->forcedNumericTagName)) {
+                $this->convertElement($element, [$this->forcedNumericTagName => $item]);
+            } else {
+                $this->convertElement($element, [$this->numericTagNamePrefix.$key => $item]);
+            }
         }
     }
 
